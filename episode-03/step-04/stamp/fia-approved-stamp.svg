@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <!--
+    Original "approved" rubber-stamp graphic for Ep.3 step 4.
+    Text only - deliberately does NOT reproduce the FIA logo/wordmark artwork.
+    Change --ink to recolour. The grunge comes from the #wear mask; delete
+    mask="url(#wear)" for a clean version.
+  -->
+  <defs>
+    <style>
+      :root { --ink: #d0202a; }
+      .ink   { fill: var(--ink); }
+      .ring  { fill: none; stroke: var(--ink); }
+      text   { font-family: "Arial Black", "Helvetica Neue", "Liberation Sans", Arial, sans-serif; font-weight: 900; fill: var(--ink); }
+    </style>
+    <path id="arcTop" d="M 170 500 A 330 330 0 0 1 830 500" />
+    <path id="arcBottom" d="M 150 500 A 350 350 0 0 0 850 500" />
+
+    <!-- Uneven ink: speckle holes + roughened edges -->
+    <filter id="speckle" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" />
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -9 5.8" />
+    </filter>
+    <filter id="blotch" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="11" />
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -6 3.6" />
+    </filter>
+    <filter id="rough">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="2" result="n" />
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="7" />
+    </filter>
+    <!-- "FIA" is knocked out of the band (transparent), like a real stamp -->
+    <mask id="knockout" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000">
+      <rect width="1000" height="1000" fill="#fff" />
+      <text x="500" y="548" font-size="132" letter-spacing="34" text-anchor="middle" style="fill:#000">FIA</text>
+    </mask>
+    <mask id="wear" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000">
+      <rect width="1000" height="1000" filter="url(#speckle)" />
+      <rect width="1000" height="1000" filter="url(#blotch)" style="mix-blend-mode:multiply" />
+    </mask>
+  </defs>
+
+  <g transform="rotate(-12 500 500)">
+    <g mask="url(#wear)" filter="url(#rough)">
+      <circle class="ring" cx="500" cy="500" r="455" stroke-width="26" />
+      <circle class="ring" cx="500" cy="500" r="405" stroke-width="8" />
+      <circle class="ring" cx="500" cy="500" r="250" stroke-width="8" />
+
+      <text font-size="92" letter-spacing="14" text-anchor="middle">
+        <textPath href="#arcTop" startOffset="50%">APPROVED</textPath>
+      </text>
+      <text font-size="54" letter-spacing="8" text-anchor="middle" dominant-baseline="hanging">
+        <textPath href="#arcBottom" startOffset="50%">STANDARD 8856-2018</textPath>
+      </text>
+
+
+      <!-- centre band -->
+      <rect class="ink" x="40" y="430" width="920" height="150" rx="10" mask="url(#knockout)" />
+    </g>
+  </g>
+</svg>

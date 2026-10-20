@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 690" width="700" height="690">
+  <title>Fireproof socks (pair, flat-lay)</title>
+  <style>
+    :root {
+      --line: #1d1f24;       /* outline */
+      --suit: #c8102e;       /* race suit main colour */
+      --suit-accent: #1d1f24;
+      --trim: #f4f2ec;       /* white trim / piping */
+      --nomex: #ecebe6;      /* undyed Nomex: balaclava, socks */
+      --nomex-shade: #cfccc3;
+      --glove: #1d1f24;
+      --glove-accent: #c8102e;
+      --boot: #1d1f24;
+      --boot-accent: #c8102e;
+      --sole: #3a3d44;
+    }
+    .o  { stroke: var(--line); stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+    .s  { fill: none; stroke: var(--line); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 9; } /* stitching */
+    .l  { fill: none; stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
+  </style>
+
+  <g transform="translate(0 0)">
+    <path class="o" fill="var(--nomex)" d="M60,40 L180,40 L180,470 Q180,500 210,505 L330,520 Q372,528 372,565 Q372,602 330,602 L120,602 Q60,602 60,540 Z"/>
+    <!-- heel + toe reinforcement -->
+    <path fill="var(--nomex-shade)" d="M60,520 Q60,602 120,602 L150,602 Q110,570 112,520 Z"/>
+    <path fill="var(--nomex-shade)" d="M320,522 Q372,528 372,565 Q372,602 330,602 L318,602 Q340,565 320,522 Z"/>
+    <path class="o" fill="none" d="M60,40 L180,40 L180,470 Q180,500 210,505 L330,520 Q372,528 372,565 Q372,602 330,602 L120,602 Q60,602 60,540 Z"/>
+    <!-- ribbed cuff -->
+    <path class="o" fill="var(--nomex-shade)" d="M60,40 H180 V100 H60 Z"/>
+    <path class="l" style="stroke-width:3;stroke:#a9a59b" d="M80,48 V92 M100,48 V92 M120,48 V92 M140,48 V92 M160,48 V92"/>
+    
+  <g transform="translate(120 140) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g></g>
+  <g transform="translate(300 60)">
+    <path class="o" fill="var(--nomex)" d="M60,40 L180,40 L180,470 Q180,500 210,505 L330,520 Q372,528 372,565 Q372,602 330,602 L120,602 Q60,602 60,540 Z"/>
+    <!-- heel + toe reinforcement -->
+    <path fill="var(--nomex-shade)" d="M60,520 Q60,602 120,602 L150,602 Q110,570 112,520 Z"/>
+    <path fill="var(--nomex-shade)" d="M320,522 Q372,528 372,565 Q372,602 330,602 L318,602 Q340,565 320,522 Z"/>
+    <path class="o" fill="none" d="M60,40 L180,40 L180,470 Q180,500 210,505 L330,520 Q372,528 372,565 Q372,602 330,602 L120,602 Q60,602 60,540 Z"/>
+    <!-- ribbed cuff -->
+    <path class="o" fill="var(--nomex-shade)" d="M60,40 H180 V100 H60 Z"/>
+    <path class="l" style="stroke-width:3;stroke:#a9a59b" d="M80,48 V92 M100,48 V92 M120,48 V92 M140,48 V92 M160,48 V92"/>
+    
+  <g transform="translate(120 140) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g></g>
+</svg>

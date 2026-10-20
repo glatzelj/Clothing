@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1100" width="1000" height="1100">
+  <title>Race suit (flat-lay)</title>
+  <style>
+    :root {
+      --line: #1d1f24;       /* outline */
+      --suit: #c8102e;       /* race suit main colour */
+      --suit-accent: #1d1f24;
+      --trim: #f4f2ec;       /* white trim / piping */
+      --nomex: #ecebe6;      /* undyed Nomex: balaclava, socks */
+      --nomex-shade: #cfccc3;
+      --glove: #1d1f24;
+      --glove-accent: #c8102e;
+      --boot: #1d1f24;
+      --boot-accent: #c8102e;
+      --sole: #3a3d44;
+    }
+    .o  { stroke: var(--line); stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+    .s  { fill: none; stroke: var(--line); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 9; } /* stitching */
+    .l  { fill: none; stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
+  </style>
+
+  <path class="o" fill="var(--suit)" d="M500,88 L440,78 C380,95 330,110 300,122 C255,138 235,160 225,190 L112,540 L205,585 L330,350 L342,560 L328,1048 L472,1048 L500,655 L528,1048 L672,1048 L658,560 L670,350 L795,585 L888,540 L775,190 C765,160 745,138 700,122 C670,110 620,95 560,78 Z"/>
+  <!-- side panels -->
+  <path fill="var(--suit-accent)" d="M330,350 L342,560 L328,1048 L372,1048 L384,600 L372,380 Z"/>
+  <path fill="var(--suit-accent)" d="M670,350 L658,560 L672,1048 L628,1048 L616,600 L628,380 Z"/>
+  <path fill="var(--trim)" d="M372,380 L384,600 L372,1048 L384,1048 L396,600 L384,385 Z"/>
+  <path fill="var(--trim)" d="M628,380 L616,600 L628,1048 L616,1048 L604,600 L616,385 Z"/>
+  <!-- arm stripes -->
+  <path fill="var(--suit-accent)" d="M225,190 L112,540 L150,558 L262,205 Z"/>
+  <path fill="var(--suit-accent)" d="M775,190 L888,540 L850,558 L738,205 Z"/>
+  <!-- belt -->
+  <path class="o" fill="var(--suit-accent)" d="M341,520 L659,520 L658,562 L342,562 Z"/>
+  <!-- knit cuffs -->
+  <path class="o" fill="var(--suit-accent)" d="M112,540 L205,585 L222,553 L123,507 Z"/>
+  <path class="o" fill="var(--suit-accent)" d="M888,540 L795,585 L778,553 L877,507 Z"/>
+  <path class="o" fill="var(--suit-accent)" d="M329,1010 L475,1010 L472,1048 L328,1048 Z"/>
+  <path class="o" fill="var(--suit-accent)" d="M671,1010 L525,1010 L528,1048 L672,1048 Z"/>
+  <!-- epaulettes (rescue handles) -->
+  <path class="o" fill="var(--trim)" d="M440,92 L310,132 L316,150 L446,110 Z"/>
+  <path class="o" fill="var(--trim)" d="M560,92 L690,132 L684,150 L554,110 Z"/>
+  <!-- collar -->
+  <path class="o" fill="var(--suit-accent)" d="M440,78 Q500,102 560,78 L556,46 Q500,68 444,46 Z"/>
+  <!-- zip -->
+  <path class="l" d="M500,96 V520"/>
+  <rect x="490" y="104" width="20" height="30" rx="4" fill="var(--trim)" class="o" style="stroke-width:4"/>
+  <!-- crotch / leg seams -->
+  <path class="s" d="M500,562 V650"/>
+  <path class="s" d="M342,575 L335,1000 M658,575 L665,1000"/>
+  
+  <g transform="translate(560 170) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g>
+
+</svg>

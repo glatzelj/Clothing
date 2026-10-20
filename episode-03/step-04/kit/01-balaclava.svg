@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 700" width="520" height="700">
+  <title>Balaclava (flat-lay)</title>
+  <style>
+    :root {
+      --line: #1d1f24;       /* outline */
+      --suit: #c8102e;       /* race suit main colour */
+      --suit-accent: #1d1f24;
+      --trim: #f4f2ec;       /* white trim / piping */
+      --nomex: #ecebe6;      /* undyed Nomex: balaclava, socks */
+      --nomex-shade: #cfccc3;
+      --glove: #1d1f24;
+      --glove-accent: #c8102e;
+      --boot: #1d1f24;
+      --boot-accent: #c8102e;
+      --sole: #3a3d44;
+    }
+    .o  { stroke: var(--line); stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+    .s  { fill: none; stroke: var(--line); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 9; } /* stitching */
+    .l  { fill: none; stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
+  </style>
+
+  <path class="o" fill="var(--nomex)" d="M260,40 C380,40 430,140 430,260 L430,420 Q430,470 470,520 L500,640 Q260,690 20,640 L50,520 Q90,470 90,420 L90,260 C90,140 140,40 260,40 Z"/>
+  <!-- neck flare shading -->
+  <path fill="var(--nomex-shade)" d="M90,470 Q260,500 430,470 Q440,500 470,520 L500,640 Q260,690 20,640 L50,520 Q80,500 90,470 Z" opacity=".55"/>
+  <path class="o" fill="none" d="M260,40 C380,40 430,140 430,260 L430,420 Q430,470 470,520 L500,640 Q260,690 20,640 L50,520 Q90,470 90,420 L90,260 C90,140 140,40 260,40 Z"/>
+  <!-- eye opening (shows the inside back of the hood) -->
+  <rect x="140" y="225" width="240" height="110" rx="50" fill="var(--nomex-shade)" class="o"/>
+  <rect x="140" y="225" width="240" height="110" rx="50" fill="none" class="s"/>
+  <!-- seams -->
+  <path class="s" d="M260,48 V218"/>
+  <path class="s" d="M95,430 Q260,465 425,430"/>
+  
+  <g transform="translate(260 590) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g>
+
+</svg>

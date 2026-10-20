@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ep3 Step 4 Animatic</title>
+<!--
+  Animatic for Ep.3 step 4: kit flat-lay, flames flicker under each item,
+  "FIA Approved" stamp lands on each one. Timing reference for the edit,
+  not the final comp. Open in a browser (plays on loop), or export with
+  tools/render_preview.mjs. render(t) is deterministic so frames can be
+  captured one at a time.
+-->
+<style>
+  html, body { margin: 0; background: #111; }
+  #stage {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(circle at 50% 45%, #f1ede4 0%, #e3ddd0 70%, #d6cfbf 100%);
+    transform-origin: 0 0;
+  }
+  .item, .flame, .stamp { position: absolute; will-change: transform, opacity; }
+  .item img { display: block; width: 100%; height: 100%; filter: drop-shadow(0 14px 10px rgba(0,0,0,.18)); }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// Layout: centre x/y and height of each item on the 1920x1080 board.
+const ITEMS = [
+  { id: "balaclava", src: "../kit/01-balaclava.svg", ar: 520 / 700,  x: 330,  y: 340, h: 400, rot: -6 },
+  { id: "suit",      src: "../kit/02-race-suit.svg", ar: 1000 / 1100, x: 960, y: 540, h: 920, rot: 0 },
+  { id: "gloves",    src: "../kit/03-gloves.svg",    ar: 800 / 580,  x: 1540, y: 300, h: 270, rot: 4 },
+  { id: "socks",     src: "../kit/04-socks.svg",     ar: 700 / 690,  x: 350,  y: 810, h: 360, rot: 3 },
+  { id: "boots",     src: "../kit/05-boots.svg",     ar: 900 / 520,  x: 1545, y: 810, h: 270, rot: -3 },
+];
+const STAMP_SRC = "../stamp/fia-approved-stamp.png";
+const FLAME_FRAMES = 50, FLAME_FPS = 25;
+const flameSrc = i => `../flames/png/flame_${String(i).padStart(4, "0")}.png`;
+
+// Timeline (seconds)
+const INTRO = 0.2, STAGGER = 0.12, FIRST = 1.0, STEP = 1.3;
+const FLAME_IN = 0.25, FLAME_HOLD = 1.05, STAMP_AT = 0.55, STAMP_DROP = 0.16;
+const DURATION = FIRST + STEP * ITEMS.length + 0.8;
+
+const stage = document.getElementById("stage");
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeIn = t => t * t * t;
+
+const els = ITEMS.map((it, i) => {
+  const w = it.h * it.ar;
+  const flame = document.createElement("img");
+  flame.className = "flame";
+  const fw = Math.max(w * 1.6, 380), fh = fw / 2;
+  Object.assign(flame.style, { width: fw + "px", height: fh + "px", left: it.x - fw / 2 + "px", top: it.y + it.h / 2 - fh * 0.85 + "px" });
+  flame.src = flameSrc(0);
+  stage.appendChild(flame);
+
+  const item = document.createElement("div");
+  item.className = "item";
+  Object.assign(item.style, { width: w + "px", height: it.h + "px", left: it.x - w / 2 + "px", top: it.y - it.h / 2 + "px" });
+  item.innerHTML = `<img src="${it.src}" alt="${it.id}">`;
+  stage.appendChild(item);
+
+  const stamp = document.createElement("img");
+  stamp.className = "stamp";
+  stamp.src = STAMP_SRC;
+  const s = Math.max(150, Math.min(240, Math.min(w, it.h) * 0.55));
+  Object.assign(stamp.style, { width: s + "px", height: s + "px", left: it.x + w * 0.18 - s / 2 + "px", top: it.y + it.h * 0.12 - s / 2 + "px" });
+  stage.appendChild(stamp);
+  return { it, item, flame, stamp, stampRot: [-14, 9, -8, 12, -10][i] };
+});
+
+function render(t) {
+  const flameIdx = Math.floor(t * FLAME_FPS) % FLAME_FRAMES;
+  els.forEach((e, i) => {
+    // item drops into the flat-lay
+    const a = easeOut(clamp((t - INTRO - i * STAGGER) / 0.4));
+    const start = FIRST + i * STEP;
+    // tiny shake when the stamp hits
+    const hit = t - (start + STAMP_AT + STAMP_DROP);
+    const shake = hit > 0 && hit < 0.12 ? Math.sin(hit * 120) * 4 * (1 - hit / 0.12) : 0;
+    e.item.style.opacity = a;
+    e.item.style.transform = `translateY(${(1 - a) * -30 + shake}px) rotate(${e.it.rot}deg) scale(${0.96 + 0.04 * a})`;
+
+    // flames: fade in, flicker, fade out
+    const ft = t - start;
+    const fo = ft < 0 ? 0 : ft < FLAME_IN ? ft / FLAME_IN : ft < FLAME_HOLD ? 1 : 1 - (ft - FLAME_HOLD) / FLAME_IN;
+    e.flame.style.opacity = clamp(fo);
+    e.flame.style.transform = `scaleY(${0.85 + 0.15 * clamp(fo)})`;
+    e.flame.style.transformOrigin = "50% 100%";
+    if (fo > 0) e.flame.src = flameSrc((flameIdx + i * 9) % FLAME_FRAMES);
+
+    // stamp: drops from big to 1, slight settle
+    const st = (t - start - STAMP_AT) / STAMP_DROP;
+    if (st < 0) { e.stamp.style.opacity = 0; return; }
+    const d = easeIn(clamp(st));
+    const settle = st > 1 ? 1 + 0.04 * Math.exp(-(st - 1) * 3) * Math.sin((st - 1) * 9) : 1;
+    e.stamp.style.opacity = clamp(st * 3) * 0.92;
+    e.stamp.style.transform = `rotate(${e.stampRot}deg) scale(${(2.6 - 1.6 * d) * settle})`;
+  });
+}
+
+window.render = render;
+window.DURATION = DURATION;
+window.ready = Promise.all(
+  [...document.images].map(img => img.decode().catch(() => {})).concat(
+    Array.from({ length: FLAME_FRAMES }, (_, i) => { const im = new Image(); im.src = flameSrc(i); return im.decode().catch(() => {}); })
+  )
+);
+
+// Fit to window and play on loop unless ?static (used by the exporter).
+if (!location.search.includes("static")) {
+  const fit = () => { const k = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `scale(${k})`; };
+  addEventListener("resize", fit); fit();
+  const t0 = performance.now();
+  const loop = now => { render(((now - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  window.ready.then(() => requestAnimationFrame(loop));
+} else {
+  render(0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 580" width="800" height="580">
+  <title>Race gloves (pair, flat-lay)</title>
+  <style>
+    :root {
+      --line: #1d1f24;       /* outline */
+      --suit: #c8102e;       /* race suit main colour */
+      --suit-accent: #1d1f24;
+      --trim: #f4f2ec;       /* white trim / piping */
+      --nomex: #ecebe6;      /* undyed Nomex: balaclava, socks */
+      --nomex-shade: #cfccc3;
+      --glove: #1d1f24;
+      --glove-accent: #c8102e;
+      --boot: #1d1f24;
+      --boot-accent: #c8102e;
+      --sole: #3a3d44;
+    }
+    .o  { stroke: var(--line); stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+    .s  { fill: none; stroke: var(--line); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 9; } /* stitching */
+    .l  { fill: none; stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
+  </style>
+
+  <g transform="translate(40 30)">
+    <path class="o" fill="var(--glove)" d="M75,400 L65,290 L22,225 Q8,200 28,186 Q48,176 64,196 L100,240 L100,105 Q100,80 124,80 Q148,80 148,105 L148,82 Q148,55 172,55 Q196,55 196,82 L196,95 Q196,70 219,70 Q242,70 242,95 L242,140 Q242,118 262,118 Q282,118 282,140 L282,300 L265,400 Z"/>
+    <!-- knuckle pad -->
+    <rect x="104" y="232" width="172" height="44" rx="20" fill="var(--glove-accent)" class="o" style="stroke-width:4"/>
+    <!-- finger seams -->
+    <path class="l" style="stroke:#5a5e66" d="M148,108 V226 M196,98 V226 M242,142 V226"/>
+    <!-- cuff -->
+    <path class="o" fill="var(--glove-accent)" d="M75,400 L265,400 L280,520 L60,520 Z"/>
+    <path class="s" style="stroke:var(--trim)" d="M80,420 H262"/>
+    
+  <g transform="translate(170 470) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g>
+  </g>
+  <g transform="translate(760 30) scale(-1 1)">
+    <path class="o" fill="var(--glove)" d="M75,400 L65,290 L22,225 Q8,200 28,186 Q48,176 64,196 L100,240 L100,105 Q100,80 124,80 Q148,80 148,105 L148,82 Q148,55 172,55 Q196,55 196,82 L196,95 Q196,70 219,70 Q242,70 242,95 L242,140 Q242,118 262,118 Q282,118 282,140 L282,300 L265,400 Z"/>
+    <!-- knuckle pad -->
+    <rect x="104" y="232" width="172" height="44" rx="20" fill="var(--glove-accent)" class="o" style="stroke-width:4"/>
+    <!-- finger seams -->
+    <path class="l" style="stroke:#5a5e66" d="M148,108 V226 M196,98 V226 M242,142 V226"/>
+    <!-- cuff -->
+    <path class="o" fill="var(--glove-accent)" d="M75,400 L265,400 L280,520 L60,520 Z"/>
+    <path class="s" style="stroke:var(--trim)" d="M80,420 H262"/>
+    
+  <g transform="translate(170 470) rotate(0)">
+    <rect x="-22" y="-14" width="44" height="28" rx="3" fill="#fff" class="o" style="stroke-width:3"/>
+    <path d="M-14-5h28M-14 1h20M-14 7h24" stroke="#9aa0a8" stroke-width="2.5"/>
+  </g>
+  </g>
+</svg>

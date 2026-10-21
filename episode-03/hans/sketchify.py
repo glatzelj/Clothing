@@ -2,7 +2,7 @@
 slightly mis-registered marker fills, cross-hatching in the shadows and
 paper grain.
 
-Usage: python3 sketchify.py flat.png out.png [--seed 3]
+Usage: python3 sketchify.py flat.png out.png [--seed 3] [--bw]
 Source: hans-mockup.html?static&paper&t=2.0 rendered at 2x (3840x2160).
 """
 import argparse
@@ -27,6 +27,43 @@ def warp(arr, dx, dy):
     return arr[sy, sx]
 
 
+# Mockup colour -> grey tone for the black-and-white version. Plain luminance
+# puts the suit, belts and seat on near-identical greys, so each part gets a
+# tone of its own; anything not listed falls back to luminance.
+BW_TONES = [
+    ((243, 239, 230), 244),  # paper
+    ((244, 242, 236), 250),  # helmet
+    ((236, 235, 230), 235),  # balaclava / neck
+    ((31, 79, 160), 205),    # suit
+    ((23, 61, 126), 170),    # arm
+    ((168, 18, 27), 120),    # belt webbing
+    ((138, 13, 21), 100),
+    ((44, 47, 54), 80),      # seat
+    ((51, 54, 61), 85),      # HANS
+    ((58, 61, 68), 90),      # wheel
+    ((29, 31, 36), 35),      # visor, boots, outlines
+    ((35, 38, 44), 40),
+    ((14, 15, 18), 25),
+    ((239, 158, 150), 196),  # ghost head (red at 50% over paper)
+    ((224, 38, 47), 140),    # "without HANS" tag
+    ((239, 226, 182), 236),  # tape caption
+    ((184, 188, 196), 200),  # buckle
+]
+
+
+def to_bw(img):
+    flat = img.reshape(-1, 3).astype(np.int16)
+    grey = np.asarray(Image.fromarray(img).convert("L")).reshape(-1).astype(np.float32)
+    best = np.full(flat.shape[0], 40.0, np.float32)  # max colour distance to snap
+    for rgb, tone in BW_TONES:
+        d = np.abs(flat - np.array(rgb, np.int16)).sum(axis=1).astype(np.float32)
+        hit = d < best
+        grey[hit] = tone
+        best[hit] = d[hit]
+    grey = grey.reshape(img.shape[:2]).astype(np.uint8)
+    return np.repeat(grey[..., None], 3, axis=2)
+
+
 def edges(img, blur):
     soft = np.asarray(Image.fromarray(img).filter(ImageFilter.GaussianBlur(blur)), dtype=np.float32) / 255
     gy, gx = np.gradient(soft, axis=(0, 1))
@@ -38,12 +75,16 @@ def main():
     ap.add_argument("src")
     ap.add_argument("out")
     ap.add_argument("--seed", type=int, default=3)
+    ap.add_argument("--bw", action="store_true", help="black and white (greyscale fills, neutral paper)")
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed)
 
     img = np.asarray(Image.open(a.src).convert("RGB"))
     h, w = img.shape[:2]
     paper = np.array([243, 239, 230], np.float32) / 255
+    if a.bw:
+        img = to_bw(img)
+        paper = np.array([244, 244, 242], np.float32) / 255
 
     # Marker fills: pushed a few px off the lines, streaky, a touch transparent.
     fdx, fdy = low_noise(h, w, 260, rng) * 9, low_noise(h, w, 260, rng) * 9
@@ -83,7 +124,7 @@ def main():
     grain = np.clip(rng.normal(128, 40, (h, w)), 0, 255).astype(np.uint8)
     grain = (np.asarray(Image.fromarray(grain).filter(ImageFilter.GaussianBlur(0.7)), np.float32) - 128) / 40
     out = fill * (1 + 0.035 * grain[..., None])
-    ink_col = np.array([28, 26, 30], np.float32) / 255
+    ink_col = np.array([18, 18, 18] if a.bw else [28, 26, 30], np.float32) / 255
     out = out * (1 - ink[..., None]) + ink_col * ink[..., None]
 
     Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8)).save(a.out)

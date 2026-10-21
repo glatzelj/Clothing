@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ep3 HANS Mockup</title>
+<!--
+  Motion mockup for the HANS beat (1920x1080), not final art.
+  VO: "Its job is to stop the head moving too far forward in an impact,
+  transferring loads through the HANS and into the seatbelts, helping reduce
+  the forces experienced on the driver's neck."
+  render(t) is deterministic; plays on loop in a browser, ?static&t=4.2 shows one
+  frame, and tools/render_mockup.mjs exports an MP4.
+-->
+<style>
+  html, body { margin: 0; background: #111; }
+  #stage { width: 1920px; height: 1080px; transform-origin: 0 0; }
+  svg { display: block; font-family: "Liberation Sans", Arial, sans-serif; }
+  .lbl { font: 800 24px/1 "Liberation Sans", Arial, sans-serif; letter-spacing: 2px; fill: #f2a01f; }
+  .vo  { font: italic 600 26px/1 "Liberation Sans", Arial, sans-serif; fill: #6b7078; }
+  .vo .on { fill: #e9e4da; }
+</style>
+</head>
+<body>
+<div id="stage">
+<svg id="svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#22252b" stroke-width="1"/>
+    </pattern>
+    <!-- twill webbing stand-in for the real belt texture -->
+    <pattern id="webbing" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="8" height="8" fill="#a8121b"/>
+      <path d="M0 2H8M0 6H8" stroke="#8a0d15" stroke-width="2"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="neckRed">
+      <stop offset="0" stop-color="#e0262f" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#e0262f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neckGreen">
+      <stop offset="0" stop-color="#3ccf7a" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#3ccf7a" stop-opacity="0"/>
+    </radialGradient>
+    <!-- head + neck, drawn upright; pivot is the base of the neck (615,500) -->
+    <g id="headShape">
+      <path d="M615,500 L648,415" stroke="#ecebe6" stroke-width="62" stroke-linecap="round"/>
+      <path d="M655,258 C722,258 760,300 762,352 L764,395 Q764,425 735,428 L640,432 Q570,432 566,365 Q562,258 655,258 Z" fill="#f4f2ec" stroke="#1d1f24" stroke-width="5"/>
+      <path d="M574,330 Q640,300 760,322" fill="none" stroke="#1f4fa0" stroke-width="16"/>
+      <path d="M690,328 L758,330 Q764,352 762,372 L690,372 Q676,350 690,328 Z" fill="#23262c"/>
+    </g>
+    <g id="ghostShape">
+      <path d="M615,500 L648,415" stroke="#e0262f" stroke-width="62" stroke-linecap="round"/>
+      <path d="M655,258 C722,258 760,300 762,352 L764,395 Q764,425 735,428 L640,432 Q570,432 566,365 Q562,258 655,258 Z" fill="#e0262f"/>
+    </g>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#17181c"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+
+  <g id="scene">
+    <!-- body (dims while the load path is shown) -->
+    <g id="body">
+      <!-- chassis side + seat -->
+      <path d="M380,960 H1760 M820,640 Q1300,610 1760,660" fill="none" stroke="#3a3e46" stroke-width="4" stroke-dasharray="14 10"/>
+      <path d="M498,400 L575,872 L1060,872" fill="none" stroke="#2c2f36" stroke-width="46" stroke-linejoin="round" stroke-linecap="round"/>
+      <!-- legs -->
+      <path d="M690,828 L1065,762" stroke="#1f4fa0" stroke-width="120" stroke-linecap="round"/>
+      <path d="M1065,762 L1470,800" stroke="#1f4fa0" stroke-width="92" stroke-linecap="round"/>
+      <path d="M1450,742 L1545,748 Q1572,752 1570,800 L1566,850 L1452,850 Z" fill="#1d1f24" stroke="#000" stroke-width="3"/>
+      <!-- torso -->
+      <path d="M682,820 L622,545" stroke="#1f4fa0" stroke-width="160" stroke-linecap="round"/>
+      <!-- steering wheel + arm -->
+      <rect x="912" y="500" width="34" height="190" rx="14" fill="#3a3d44" transform="rotate(-12 929 595)"/>
+      <path d="M640,575 L770,705 L912,612" fill="none" stroke="#173d7e" stroke-width="66" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="914" cy="612" r="30" fill="#1d1f24"/>
+    </g>
+
+    <!-- head: ghost (no HANS) behind, real head on top -->
+    <use id="ghost" href="#ghostShape"/>
+    <path id="arc" fill="none" stroke="#e0262f" stroke-width="3" stroke-dasharray="6 8"/>
+    <g id="ghostTag">
+      <rect x="0" y="0" width="210" height="40" rx="4" fill="#e0262f"/>
+      <text x="105" y="27" text-anchor="middle" font-size="19" font-weight="800" fill="#fff" letter-spacing="1.5">WITHOUT HANS</text>
+    </g>
+
+    <use id="head" href="#headShape"/>
+    <circle id="neck" cx="628" cy="462" r="72" fill="url(#neckRed)"/>
+
+    <!-- restraint system (always full brightness) -->
+    <g id="restraints">
+      <!-- HANS: collar behind the neck, arm lying on the chest -->
+      <path d="M548,522 L566,402 Q572,388 590,390 L606,392 Q616,396 612,412 L606,470 L700,548 L748,632 Q752,646 738,650 L716,650 L650,580 L572,536 Z" fill="#33363d" stroke="#0e0f12" stroke-width="4" stroke-linejoin="round"/>
+      <!-- tether -->
+      <path id="tether" fill="none" stroke="#c9ccd2" stroke-width="7" stroke-linecap="round"/>
+      <!-- shoulder + lap belt with webbing texture -->
+      <path id="beltPath" d="M440,465 L600,482 Q692,520 706,640 L722,795" fill="none" stroke="#0e0f12" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M440,465 L600,482 Q692,520 706,640 L722,795" fill="none" stroke="url(#webbing)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M722,800 L640,870" fill="none" stroke="#0e0f12" stroke-width="40" stroke-linecap="round"/>
+      <path d="M722,800 L640,870" fill="none" stroke="url(#webbing)" stroke-width="32" stroke-linecap="round"/>
+      <rect x="696" y="776" width="54" height="54" rx="10" fill="#b8bcc4" stroke="#0e0f12" stroke-width="4"/>
+    </g>
+
+    <!-- load-path pulse: lit trail + travelling streak per segment -->
+    <g id="pulse" filter="url(#glow)" fill="none" stroke-linecap="round">
+      <path id="trail0" pathLength="1" stroke="#f2a01f" stroke-width="9"/>
+      <path id="trail1" pathLength="1" stroke="#f2a01f" stroke-width="9" d="M592,402 L600,470 L700,555 L735,640"/>
+      <path id="trail2" pathLength="1" stroke="#f2a01f" stroke-width="12" d="M600,482 Q692,520 706,640 L722,795"/>
+      <path id="streak0" pathLength="1" stroke="#fff2c6" stroke-width="16"/>
+      <path id="streak1" pathLength="1" stroke="#fff2c6" stroke-width="16" d="M592,402 L600,470 L700,555 L735,640"/>
+      <path id="streak2" pathLength="1" stroke="#fff2c6" stroke-width="18" d="M600,482 Q692,520 706,640 L722,795"/>
+    </g>
+
+    <!-- labels -->
+    <g id="lbl0"><path d="M470,300 H540 L600,388" fill="none" stroke="#f2a01f" stroke-width="2.5"/><text class="lbl" x="300" y="308">TETHER</text></g>
+    <g id="lbl1"><path d="M430,600 H520 L560,520" fill="none" stroke="#f2a01f" stroke-width="2.5"/><text class="lbl" x="300" y="608">HANS</text></g>
+    <g id="lbl2"><path d="M960,470 H860 L700,575" fill="none" stroke="#f2a01f" stroke-width="2.5"/><text class="lbl" x="975" y="478">SHOULDER BELTS</text></g>
+    <g id="neckLbl"><text x="300" y="432" font-size="22" font-weight="800" letter-spacing="2" fill="#3ccf7a">NECK LOAD ↓</text></g>
+  </g>
+
+  <!-- section caption + VO reference -->
+  <g transform="translate(70 70) rotate(-2)">
+    <rect width="300" height="54" fill="#efe2b6"/>
+    <text x="18" y="36" font-family="Liberation Mono, monospace" font-weight="800" font-size="22" fill="#1d1f24">RESTRAINTS · <tspan fill="#c47f00">HANS</tspan></text>
+  </g>
+  <text id="vo" class="vo" x="960" y="1030" text-anchor="middle"></text>
+</svg>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+// Timeline (s)
+const IMPACT = 1.0, HEAD_STOP = 1.32, GHOST_END = 1.75;
+const SEG = [[2.6, 3.0], [3.0, 3.6], [3.6, 4.6]];     // tether, HANS, belts
+const NECK = 5.0, DURATION = 7.5;
+const REAL_DEG = 10, GHOST_DEG = 58;
+const PIVOT = [615, 500], ANCHOR = [612, 378], HANS_TOP = [592, 402];
+
+const VO = [
+  [0, "Its job is to stop the head moving too far forward in an impact,"],
+  [2.4, "transferring loads through the HANS and into the seatbelts,"],
+  [4.8, "helping reduce the forces experienced on the driver's neck."],
+];
+
+function rot([x, y], deg) {
+  const r = deg * Math.PI / 180, dx = x - PIVOT[0], dy = y - PIVOT[1];
+  return [PIVOT[0] + dx * Math.cos(r) - dy * Math.sin(r), PIVOT[1] + dx * Math.sin(r) + dy * Math.cos(r)];
+}
+
+function render(t) {
+  // impact shake
+  const s = t - IMPACT, shake = s > 0 && s < 0.25 ? Math.sin(s * 90) * 10 * (1 - s / 0.25) : 0;
+  $("scene").setAttribute("transform", `translate(${shake} ${shake * 0.4})`);
+
+  // real head: fast forward, stopped by the tethers with a small rebound
+  const hp = ramp(t, IMPACT, HEAD_STOP);
+  const rebound = t > HEAD_STOP ? -2 * Math.exp(-(t - HEAD_STOP) * 8) * Math.sin((t - HEAD_STOP) * 30) : 0;
+  const deg = REAL_DEG * easeOut(hp) + rebound;
+  $("head").setAttribute("transform", `rotate(${deg} ${PIVOT})`);
+
+  // ghost: keeps going much further, then stays as a faint reference
+  const gp = easeOut(ramp(t, IMPACT, GHOST_END));
+  const gDeg = GHOST_DEG * gp;
+  $("ghost").setAttribute("transform", `rotate(${gDeg} ${PIVOT})`);
+  $("ghost").setAttribute("opacity", t < IMPACT ? 0 : 0.5 * (1 - ramp(t, 2.4, 2.8)));
+  // dotted arc from the real head's front to the ghost's
+  const front = [760, 360], a0 = rot(front, REAL_DEG), a1 = rot(front, gDeg);
+  const r = Math.hypot(front[0] - PIVOT[0], front[1] - PIVOT[1]);
+  $("arc").setAttribute("d", `M${a0} A${r},${r} 0 0 1 ${a1}`);
+  const arcOn = ramp(t, GHOST_END, GHOST_END + 0.3) * (1 - ramp(t, 2.4, 2.8));
+  $("arc").setAttribute("opacity", gDeg > REAL_DEG + 1 ? arcOn : 0);
+  const tagPos = rot([800, 300], GHOST_DEG);
+  $("ghostTag").setAttribute("transform", `translate(${tagPos[0] + 10} ${tagPos[1] - 20})`);
+  $("ghostTag").setAttribute("opacity", arcOn);
+
+  // tether follows the helmet anchor; snaps taut (flash) when the head stops
+  const anc = rot(ANCHOR, deg);
+  const slack = 1 - hp;
+  const mid = [(anc[0] + HANS_TOP[0]) / 2 - 14 * slack, (anc[1] + HANS_TOP[1]) / 2 + 16 * slack];
+  const tetherD = `M${anc} Q${mid} ${HANS_TOP}`;
+  $("tether").setAttribute("d", tetherD);
+  const snap = t > HEAD_STOP && t < HEAD_STOP + 0.2 ? 1 - (t - HEAD_STOP) / 0.2 : 0;
+  $("tether").setAttribute("stroke", snap ? "#fff2c6" : "#c9ccd2");
+  $("trail0").setAttribute("d", tetherD);
+  $("streak0").setAttribute("d", tetherD);
+
+  // dim everything except the restraint system while the load path plays
+  const dim = ramp(t, 2.3, 2.7) * (1 - ramp(t, 6.6, 7.0));
+  $("body").setAttribute("opacity", 1 - 0.6 * dim);
+  $("head").setAttribute("opacity", 1 - 0.35 * dim);
+
+  // pulse: streak travels each segment, lit trail stays behind it
+  SEG.forEach(([a, b], i) => {
+    const p = easeInOut(ramp(t, a, b));
+    const on = t >= a;
+    const fadeOut = 1 - 0.45 * ramp(t, 5.4, 6.2);
+    $("trail" + i).setAttribute("stroke-dasharray", `${p} 2`);
+    $("trail" + i).setAttribute("opacity", on ? 0.75 * fadeOut : 0);
+    const L = 0.22;
+    $("streak" + i).setAttribute("stroke-dasharray", `${L} 3`);
+    $("streak" + i).setAttribute("stroke-dashoffset", L - p * (1 + L));
+    $("streak" + i).setAttribute("opacity", on && p < 1 ? 1 : 0);
+    // label pops when the streak arrives
+    const lp = easeOut(ramp(t, a, a + 0.25));
+    $("lbl" + i).setAttribute("opacity", lp);
+    $("lbl" + i).setAttribute("transform", `translate(${(1 - lp) * -12} 0)`);
+  });
+
+  // neck: red then settles green
+  const n = ramp(t, NECK, NECK + 1.2);
+  const neck = $("neck");
+  neck.setAttribute("opacity", t < NECK ? 0 : 0.85 * (n < 0.35 ? n / 0.35 : 1) * (0.85 + 0.15 * Math.sin(t * 10)));
+  neck.setAttribute("fill", n < 0.45 ? "url(#neckRed)" : "url(#neckGreen)");
+  $("neckLbl").setAttribute("opacity", ramp(t, NECK + 0.6, NECK + 0.9));
+
+  // VO line for reference
+  const line = VO.filter(v => t >= v[0]).pop();
+  $("vo").innerHTML = `<tspan class="on">${line[1]}</tspan>`;
+}
+
+window.render = render;
+window.DURATION = DURATION;
+window.ready = Promise.resolve();
+const q = new URLSearchParams(location.search);
+if (q.has("static")) {
+  render(Number(q.get("t") || 0));
+} else {
+  const fit = () => { $("stage").style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`; };
+  addEventListener("resize", fit); fit();
+  const t0 = performance.now();
+  const loop = now => { render(((now - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

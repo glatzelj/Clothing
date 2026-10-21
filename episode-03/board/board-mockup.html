@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ep3 Evidence Board</title>
+<!--
+  Motion mockup for the "working together" evidence-board section (1920x1080).
+  Beats: features pinned one by one, unconnected -> string snaps them into one
+  network on "work together" -> features regroup into the four systems.
+  Placeholder photos are grey cards except Dave's sheet and the crash photo
+  (cropped from the current board frames) and the HANS sketch still.
+  render(t) is deterministic; ?static&t=9.5 shows one frame; render_mockup.mjs exports MP4.
+-->
+<style>
+  @font-face { font-family: "Caveat"; src: url(assets/caveat-600.woff2) format("woff2"); font-weight: 600; }
+  html, body { margin: 0; background: #111; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 51px, #b9cbe0 51px 53px),
+      #eceae6; }
+  #world { position: absolute; inset: 0; transform-origin: 925px 500px; }
+  .board { position: absolute; left: 290px; top: 85px; width: 1300px; height: 860px; box-sizing: border-box;
+    border: 26px solid #e3c08e; box-shadow: 0 0 0 3px #c9a46e inset, 0 22px 40px rgba(0,0,0,.35);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,.08), transparent 60%),
+      url(assets/cork.png) center/cover, #c98a4f; }
+  .sheet { position: absolute; left: 676px; top: 206px; width: 498px; height: 578px;
+    background: url(assets/dave-sheet.png) center/cover; box-shadow: 0 10px 18px rgba(0,0,0,.3); }
+  .card { position: absolute; width: 250px; padding: 12px 12px 0; background: #f4ecd8; box-sizing: border-box;
+    box-shadow: 0 12px 20px rgba(0,0,0,.35); will-change: transform, opacity; }
+  .card .ph { height: 160px; background: #5b5f66 center/cover; display: grid; place-items: center;
+    font: 700 17px/1.2 "Liberation Sans", Arial, sans-serif; color: rgba(255,255,255,.75); text-align: center; letter-spacing: .5px; }
+  .card .cap { position: relative; height: 58px; font: 600 40px/58px "Caveat", cursive; color: #1d1b1a; text-align: center; white-space: nowrap; }
+  .cap span { position: absolute; inset: 0; }
+  .cap .strike { position: absolute; left: 18%; right: 18%; top: 50%; height: 3px; background: #b3202a; transform-origin: 0 50%; transform: scaleX(0); }
+  svg#strings { position: absolute; inset: 0; overflow: visible; pointer-events: none; z-index: 1000; }
+  #vo { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 0 18px; background: rgba(15,15,18,.78); text-align: center; font: italic 600 24px/1.3 "Liberation Sans", Arial, sans-serif;
+    color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.8); }
+  #vo b { color: #ffd166; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="world">
+    <div class="board"></div>
+    <div class="sheet"></div>
+    <div id="cards"></div>
+    <svg id="strings" viewBox="0 0 1920 1080" width="1920" height="1080">
+      <defs>
+        <radialGradient id="pinG" cx=".35" cy=".35"><stop offset="0" stop-color="#e46a6a"/><stop offset=".6" stop-color="#9e1c22"/><stop offset="1" stop-color="#5c0d12"/></radialGradient>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="2" dy="4" stdDeviation="2" flood-opacity=".35"/></filter>
+      </defs>
+      <g id="lines" filter="url(#sh)"></g>
+      <g id="pins" filter="url(#sh)"></g>
+    </svg>
+  </div>
+  <div id="vo"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ramp = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const lerp = (a, b, k) => a + (b - a) * k;
+
+// ---- cards: position = centre, slapAt = when it lands, moves = [t0, t1, x, y, rot]
+const CARDS = {
+  halo:   { x: 455,  y: 275, r: -4, slap: 3.9,  cap: "Halo",       photo: "photo: Halo" },
+  belts:  { x: 1390, y: 265, r: 3,  slap: 4.6,  cap: "Seat Belts", photo: "photo: seat belts" },
+  helmet: { x: 455,  y: 690, r: 3,  slap: 5.3,  cap: "Helmet",     photo: "photo: helmet" },
+  suit:   { x: 1395, y: 700, r: -3, slap: 6.0,  cap: "Race Suit",  photo: "photo: race suit",
+            move: [11.9, 12.5, 540, 735, 7] },
+  crash:  { x: 1395, y: 700, r: 2,  slap: 10.4, cap: "Crash Structures", photo: "", img: "assets/crash.png", wide: true },
+  hans:   { x: 1445, y: 505, r: 6,  slap: 11.4, cap: "", photo: "", img: "assets/hans-sketch.png", small: true },
+};
+// caption rewrites: [card, time, new caption]
+const REWRITE = [["halo", 10.9, "Survival Cell"], ["belts", 11.4, "Harness & HANS"], ["suit", 12.5, "Safety Equipment"]];
+
+for (const [id, c] of Object.entries(CARDS)) {
+  const el = document.createElement("div");
+  el.className = "card"; el.id = "card-" + id;
+  if (c.wide) el.style.width = "290px";
+  if (c.small) { el.style.width = "210px"; }
+  const bg = c.img ? `background-image:url(${c.img})` : "";
+  el.innerHTML = `<div class="ph" style="${bg};${c.small ? "height:118px" : ""}">${c.photo}</div>
+    <div class="cap" ${c.small ? 'style="height:14px"' : ""}><span class="old">${c.cap}</span><span class="new"></span><div class="strike"></div></div>`;
+  $("cards").appendChild(el);
+  c.el = el;
+}
+REWRITE.forEach(([id, , txt]) => { CARDS[id].el.querySelector(".new").textContent = txt; });
+// long captions get a smaller hand so they fit the card
+document.querySelectorAll(".cap span").forEach(sp => { if (sp.textContent.length > 12) sp.style.fontSize = "33px"; });
+
+// card centre at time t (handles moves)
+function cardPos(id, t) {
+  const c = CARDS[id];
+  if (!c.move) return [c.x, c.y, c.r];
+  const [a, b, x, y, r] = c.move, k = easeInOut(ramp(t, a, b));
+  return [lerp(c.x, x, k), lerp(c.y, y, k), lerp(c.r, r, k)];
+}
+// pin sits at the top-centre of a card
+function pinPos(id, t) {
+  const [x, y] = cardPos(id, t);
+  return [x, y - CARDS[id].el.offsetHeight / 2 + 7];
+}
+
+// ---- strings: [from, to, startTime, endFade?]  "dave:tl" etc are sheet corners
+const DAVE = { tl: [700, 228], tr: [1150, 228], bl: [700, 762], br: [1150, 762] };
+const STR = [
+  ["halo", "dave:tl", 8.0], ["belts", "dave:tr", 8.22], ["helmet", "dave:bl", 8.44], ["suit", "dave:br", 8.66, 11.9],
+  ["halo", "belts", 8.9], ["halo", "helmet", 9.12], ["belts", "suit", 9.34, 11.9],
+  ["crash", "dave:br", 10.6], ["belts", "crash", 10.8],
+];
+const PULSE = 9.75;   // every string flashes once on "work together"
+const ns = "http://www.w3.org/2000/svg";
+const lineEls = STR.map(() => { const p = document.createElementNS(ns, "path"); p.setAttribute("fill", "none"); p.setAttribute("stroke-linecap", "round"); $("lines").appendChild(p); return p; });
+const pinIds = ["halo", "belts", "helmet", "suit", "crash", "dave:tl", "dave:tr", "dave:bl", "dave:br"];
+const pinEls = pinIds.map(() => { const c = document.createElementNS(ns, "circle"); c.setAttribute("r", 11); c.setAttribute("fill", "url(#pinG)"); $("pins").appendChild(c); return c; });
+
+const pt = (id, t) => id.startsWith("dave:") ? DAVE[id.slice(5)] : pinPos(id, t);
+
+const VO = [
+  [0.0, "The answer is not because of one single safety feature."],
+  [3.0, "Not because of the <b>Halo</b>, or the <b>seat belts</b>, or the <b>helmet</b>, or the <b>race suits</b> individually."],
+  [7.2, "It’s because every element is designed to <b>work together</b>."],
+  [10.2, "The <b>crash structures</b> absorb the energy, the <b>survival cell</b> preserves the driver’s space, the <b>harness and HANS</b>…"],
+];
+const DURATION = 14.0;
+
+function render(t) {
+  // slow push-in across the section
+  $("world").style.transform = `scale(${1 + 0.035 * easeInOut(ramp(t, 0, DURATION))})`;
+
+  for (const [id, c] of Object.entries(CARDS)) {
+    const s = ramp(t, c.slap, c.slap + 0.22);
+    const [x, y, r] = cardPos(id, t);
+    const w = c.el.offsetWidth, h = c.el.offsetHeight;
+    const scale = 1 + 0.35 * (1 - easeOut(s));
+    c.el.style.opacity = t < c.slap ? 0 : clamp(s * 3);
+    c.el.style.left = x - w / 2 + "px"; c.el.style.top = y - h / 2 + "px";
+    c.el.style.transform = `rotate(${r + (1 - s) * 6}deg) scale(${scale})`;
+    c.el.style.zIndex = Math.round(c.slap * 10) + (c.move && t > c.move[0] ? 200 : 0);
+  }
+
+  // caption rewrites: strike through the old word, then write the new one in
+  REWRITE.forEach(([id, at]) => {
+    const el = CARDS[id].el, k1 = ramp(t, at, at + 0.25), k2 = ramp(t, at + 0.25, at + 0.75);
+    el.querySelector(".strike").style.transform = `scaleX(${k1})`;
+    el.querySelector(".strike").style.opacity = 1 - k2;
+    el.querySelector(".old").style.opacity = 1 - k2;
+    el.querySelector(".new").style.clipPath = `inset(0 ${100 - k2 * 100}% 0 0)`;
+  });
+
+  // strings: shoot from A to B, overshoot sag, settle taut; flash on PULSE
+  STR.forEach(([a, b, at, fade], i) => {
+    const p = lineEls[i], k = ramp(t, at, at + 0.18);
+    if (t < at) { p.setAttribute("d", ""); return; }
+    const A = pt(a, t), B0 = pt(b, t);
+    const B = [lerp(A[0], B0[0], easeOut(k)), lerp(A[1], B0[1], easeOut(k))];
+    const since = t - at - 0.18;
+    const sag = since < 0 ? 40 : 8 + 32 * Math.exp(-since * 7) * Math.cos(since * 22);
+    const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2 + sag;
+    p.setAttribute("d", `M${A} Q${mx},${my} ${B}`);
+    const flash = Math.exp(-Math.pow((t - PULSE - i * 0.03) / 0.12, 2));
+    p.setAttribute("stroke", flash > 0.05 ? `rgb(${lerp(142, 255, flash)},${lerp(42, 90, flash)},${lerp(42, 70, flash)})` : "#8e2a2a");
+    p.setAttribute("stroke-width", 3 + 3 * flash);
+    p.setAttribute("opacity", fade ? 1 - ramp(t, fade, fade + 0.3) : 1);
+  });
+
+  // pins pop in with their first string (or card)
+  pinIds.forEach((id, i) => {
+    const first = Math.min(...STR.filter(s => s[0] === id || s[1] === id).map(s => s[2]));
+    const [x, y] = pt(id, t), k = easeOut(ramp(t, first - 0.08, first + 0.05));
+    pinEls[i].setAttribute("cx", x); pinEls[i].setAttribute("cy", y);
+    pinEls[i].setAttribute("r", 11 * (k < 1 ? 1.6 - 0.6 * k : 1));
+    let op = k;
+    if (id === "suit") op *= 1 - ramp(t, 11.9, 12.2);
+    pinEls[i].setAttribute("opacity", op);
+  });
+
+  const line = VO.filter(v => t >= v[0]).pop();
+  $("vo").innerHTML = line[1];
+}
+
+window.render = render;
+window.DURATION = DURATION;
+window.ready = document.fonts.ready.then(() => Promise.all([...document.querySelectorAll("img")].map(i => i.decode().catch(() => {}))));
+const q = new URLSearchParams(location.search);
+if (q.has("static")) {
+  window.ready.then(() => render(Number(q.get("t") || 0)));
+} else {
+  const fit = () => { $("stage").style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`; };
+  addEventListener("resize", fit); fit();
+  const t0 = performance.now();
+  const loop = now => { render(((now - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  window.ready.then(() => requestAnimationFrame(loop));
+}
+</script>
+</body>
+</html>

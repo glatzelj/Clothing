@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ramp Into Freeze</title>
+<!--
+  Example of the speed ramp into the intro freeze frame (1920x1080).
+  Placeholder "footage" (a car flipping) plays at 100%, eases to 0% over
+  RAMP seconds, then locks with a flash + desaturate. The inset graph shows
+  playback speed against time. render(t) is deterministic.
+-->
+<style>
+  html, body { margin: 0; background: #111; }
+  canvas { display: block; transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+
+// Timeline (real seconds)
+const RAMP_AT = 2.0, RAMP = 0.6, DURATION = 4.6;
+
+// Playback rate: 1 until RAMP_AT, smooth (cosine) ease to 0 over RAMP.
+const rate = t => t < RAMP_AT ? 1 : t > RAMP_AT + RAMP ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * (t - RAMP_AT) / RAMP);
+// Footage time = integral of rate (closed form for the cosine ease).
+function footage(t) {
+  if (t < RAMP_AT) return t;
+  const u = Math.min(t - RAMP_AT, RAMP);
+  return RAMP_AT + u / 2 + (RAMP / (2 * Math.PI)) * Math.sin(Math.PI * u / RAMP);
+}
+const FREEZE_TAU = footage(RAMP_AT + RAMP);
+
+// ---- placeholder footage, a function of footage time tau
+const GROUND = 780, LAUNCH = 1.2, LAND = 3.0;
+function car(tau) {
+  const x = -150 + 500 * tau;
+  const air = tau > LAUNCH && tau < LAND ? 520 * (tau - LAUNCH) * (LAND - tau) : 0;
+  const rot = tau > LAUNCH ? 165 * (tau - LAUNCH) : 0;
+  return { x, y: GROUND - 70 - air, rot };
+}
+const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
+const DEBRIS = Array.from({ length: 40 }, () => ({ vx: 150 + rnd() * 450, vy: -(200 + rnd() * 550), r: 3 + rnd() * 6 }));
+
+function drawCar(c) {
+  ctx.save();
+  ctx.translate(c.x, c.y);
+  ctx.rotate(c.rot * Math.PI / 180);
+  ctx.fillStyle = "#1f2a5c";
+  ctx.beginPath(); // simple single-seater side profile
+  ctx.moveTo(-210, 10); ctx.lineTo(-200, -30); ctx.lineTo(-120, -34); ctx.lineTo(-40, -62);
+  ctx.lineTo(30, -62); ctx.lineTo(70, -30); ctx.lineTo(230, -16); ctx.lineTo(240, 10); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#d81e2c"; ctx.fillRect(-60, -40, 260, 12);
+  ctx.strokeStyle = "#111"; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(-15, -66, 34, Math.PI * 1.05, Math.PI * 1.75); ctx.stroke(); // halo
+  ctx.fillStyle = "#f2f2f2"; ctx.beginPath(); ctx.arc(-10, -72, 17, 0, Math.PI * 2); ctx.fill(); // helmet
+  ctx.fillStyle = "#151515";
+  for (const wx of [-150, 160]) { ctx.beginPath(); ctx.arc(wx, 14, 42, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawFootage(tau, blur) {
+  // track side: sky, barrier, gravel
+  const g = ctx.createLinearGradient(0, 0, 0, 1080);
+  g.addColorStop(0, "#8fb3c9"); g.addColorStop(.55, "#cfd9dd"); g.addColorStop(.56, "#7b8a5a"); g.addColorStop(1, "#5c6a3f");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 1920, 1080);
+  ctx.fillStyle = "#c8b48a"; ctx.fillRect(0, GROUND - 10, 1920, 300); // gravel
+  for (let i = 0; i < 26; i++) { // tyre barrier
+    ctx.fillStyle = i % 2 ? "#e9e9e9" : "#c9232d"; ctx.fillRect(i * 80 - 20, 520, 80, 90);
+  }
+  ctx.fillStyle = "#3b3b3b"; ctx.fillRect(0, 610, 1920, 8);
+
+  // debris from the launch point
+  if (tau > LAUNCH) {
+    const dt = tau - LAUNCH, ox = -150 + 500 * LAUNCH;
+    ctx.fillStyle = "#a89263";
+    DEBRIS.forEach(d => {
+      const y = GROUND - 20 + d.vy * dt + 600 * dt * dt;
+      if (y < GROUND) { ctx.beginPath(); ctx.arc(ox + d.vx * dt, y, d.r, 0, Math.PI * 2); ctx.fill(); }
+    });
+  }
+
+  // car with motion blur proportional to playback speed (trail of past positions)
+  const n = Math.round(1 + 7 * blur);
+  for (let i = n - 1; i >= 0; i--) {
+    ctx.globalAlpha = i === 0 ? 1 : 0.18 * (1 - i / n);
+    drawCar(car(tau - i * 0.012 * blur));
+  }
+  ctx.globalAlpha = 1;
+}
+
+function label(text, x, y, size = 22, color = "#fff", align = "left", weight = 800) {
+  ctx.font = `${weight} ${size}px "Liberation Sans", Arial, sans-serif`;
+  ctx.textAlign = align; ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
+
+function render(t) {
+  const tau = footage(t), r = rate(t);
+  const lock = clamp((t - RAMP_AT - RAMP) / 0.25);     // 0 -> 1 after the freeze
+
+  // footage, desaturated + slightly darker once locked
+  ctx.filter = `grayscale(${0.7 * lock}) brightness(${1 - 0.18 * lock})`;
+  drawFootage(tau, r);
+  ctx.filter = "none";
+
+  // flash on the lock
+  const since = t - RAMP_AT - RAMP;
+  if (since > 0 && since < 0.18) { ctx.fillStyle = `rgba(255,255,255,${0.85 * (1 - since / 0.18)})`; ctx.fillRect(0, 0, 1920, 1080); }
+
+  // mockup labels
+  ctx.fillStyle = "rgba(0,0,0,.55)"; ctx.fillRect(40, 36, 390, 46);
+  label("PLACEHOLDER FOOTAGE", 58, 68, 22, "#fff");
+
+  // millisecond counter: runs from the start of the ramp, stops on the freeze
+  if (t >= RAMP_AT) {
+    const ms = Math.round((Math.min(tau, FREEZE_TAU) - RAMP_AT) * 1000);
+    ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(1560, 36, 320, 70);
+    label(`+${String(ms).padStart(3, "0")} ms`, 1860, 88, 44, lock > 0 ? "#ffd166" : "#fff", "right", 700);
+  }
+
+  // stage caption
+  const stage = t < RAMP_AT ? "1  NORMAL SPEED" : t < RAMP_AT + RAMP ? "2  RAMP DOWN" : "3  FREEZE";
+  ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(40, 960, 420, 70);
+  label(stage, 64, 1006, 30, "#fff");
+
+  // playback-speed graph
+  const gx = 1460, gy = 850, gw = 420, gh = 150;
+  ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(gx - 70, gy - 50, gw + 90, gh + 90);
+  label("PLAYBACK SPEED", gx, gy - 18, 18, "#cfd3da");
+  ctx.strokeStyle = "#555b64"; ctx.lineWidth = 2; ctx.strokeRect(gx, gy, gw, gh);
+  ctx.strokeStyle = "#ffd166"; ctx.lineWidth = 4; ctx.beginPath();
+  for (let i = 0; i <= 200; i++) {
+    const tt = DURATION * i / 200, px = gx + gw * i / 200, py = gy + gh - gh * rate(tt);
+    i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+  }
+  ctx.stroke();
+  const px = gx + gw * t / DURATION;
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, gy); ctx.lineTo(px, gy + gh); ctx.stroke();
+  label("100%", gx - 8, gy + 8, 14, "#9aa0a8", "right", 600);
+  label("0%", gx - 8, gy + gh + 4, 14, "#9aa0a8", "right", 600);
+  label(`${Math.round(r * 100)}%`, gx + gw, gy + gh + 30, 20, "#fff", "right");
+}
+
+window.render = render;
+window.DURATION = DURATION;
+window.ready = Promise.resolve();
+const q = new URLSearchParams(location.search);
+if (q.has("static")) render(Number(q.get("t") || 0));
+else {
+  const fit = () => { cv.style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`; };
+  addEventListener("resize", fit); fit();
+  const t0 = performance.now();
+  const loop = now => { render(((now - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ep3 Intro Layout</title>
+<!--
+  Layout mockup for the Ep.3 intro time slice (1920x1080), not final art.
+  ?state=1 open full-frame | 2 mid-sequence | 3 all stills | 4 end hold
+  Figures on the captions are placeholders - verify against the FIA report.
+-->
+<style>
+  :root {
+    --bg: #17181c; --line: #e9e4da; --muted: #8a8e96; --red: #e0262f;
+    --tape: #efe2b6; --print: #f7f5f0;
+  }
+  html, body { margin: 0; background: var(--bg); }
+  #frame { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg);
+    font-family: "Liberation Sans", Arial, sans-serif; color: var(--line); }
+
+  .video { position: absolute; left: 288px; top: 36px; width: 1344px; height: 756px; overflow: hidden;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.04) 0 2px, transparent 2px 22px),
+      linear-gradient(180deg, #3a4048 0%, #2a2e35 55%, #24272c 100%);
+    outline: 2px solid rgba(255,255,255,.08); }
+  .video.full { left: 0; top: 0; width: 1920px; height: 1080px; outline: 0; }
+  .video .tag { position: absolute; left: 32px; top: 28px; font: 700 22px/1 monospace; letter-spacing: .08em;
+    background: rgba(0,0,0,.45); padding: 10px 14px; }
+  .video .tag b { color: var(--red); }
+  .video .label { position: absolute; inset: 0; display: grid; place-items: center; font: 600 40px/1.3 sans-serif;
+    color: rgba(255,255,255,.35); text-align: center; letter-spacing: .04em; }
+  .video .label small { display: block; font-size: 22px; color: rgba(255,255,255,.28); }
+
+  .print { position: absolute; top: 760px; width: 260px; padding: 10px 10px 16px; background: var(--print);
+    box-shadow: 0 18px 30px rgba(0,0,0,.55); transform: translateX(-50%) rotate(var(--r)); }
+  .print .img { height: 146px; display: grid; place-items: center; font: 600 15px/1.2 sans-serif; color: rgba(255,255,255,.55);
+    background: repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 2px, transparent 2px 14px), var(--shade); }
+  .tape { position: absolute; left: 50%; top: -22px; transform: translateX(-50%) rotate(calc(var(--r) * -1.6));
+    background: var(--tape); color: #1d1f24; padding: 7px 14px 6px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,.25);
+    clip-path: polygon(2% 0, 98% 4%, 100% 50%, 97% 100%, 3% 96%, 0 50%); }
+  .tape b { font: 800 17px/1 "Liberation Mono", monospace; }
+  .tape span { display: block; font: 600 13px/1.2 sans-serif; margin-top: 3px; }
+
+  svg.tl { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .clock { position: absolute; left: 1664px; top: 958px; font: 700 46px/1 "Liberation Mono", monospace; }
+  .clock small { display: block; font: 600 14px/1 sans-serif; color: var(--muted); letter-spacing: .12em; margin-bottom: 6px; }
+
+  .flash { position: absolute; inset: 0; background: #fff; opacity: .0; }
+
+  /* End hold: band rises to centre, video gone */
+  #frame.s4 .video { display: none; }
+  #frame.s4 .band { transform: translateY(-330px); }
+  .band { position: absolute; inset: 0; }
+
+  .note { position: absolute; font: 600 18px/1.35 sans-serif; color: #7fd1ff; }
+  .note::before { content: "▸ "; }
+</style>
+</head>
+<body>
+<div id="frame">
+  <div class="video" id="video">
+    <div class="tag"><b>●</b> BAHRAIN GP 2020 · LAP 1</div>
+    <div class="label"><div>CRASH FOOTAGE (live)<small>keeps playing behind the stills</small></div></div>
+  </div>
+  <div class="band" id="band"></div>
+  <div class="flash" id="flash"></div>
+</div>
+<script>
+const state = Number(new URLSearchParams(location.search).get("state") || 3);
+const frame = document.getElementById("frame");
+const band = document.getElementById("band");
+frame.classList.add("s" + state);
+
+// Timeline: x 288..1632 represents 0..30 s (aligned to the video edges).
+const X0 = 288, X1 = 1632, SECS = 30, TY = 985;
+const tx = s => X0 + (X1 - X0) * s / SECS;
+const STILLS = [
+  { t: 0.0,  time: "T+0.0s",  name: "IMPACT",      note: "~220 km/h · 67g",    x: 456,  r: "-3deg", shade: "#4a3a3a" },
+  { t: 1.0,  time: "T+1.0s",  name: "FIRE",        note: "Fuel ignites",       x: 792,  r: "2deg",  shade: "#5a3a22" },
+  { t: 27.0, time: "T+27.0s", name: "ESCAPE",      note: "Climbs out",         x: 1128, r: "-2deg", shade: "#4a3326" },
+  { t: 28.0, time: "T+28.0s", name: "OUT",         note: "Clear of the fire",  x: 1464, r: "3deg",  shade: "#3a3f4a" },
+];
+const shown = state === 1 ? 0 : state === 2 ? 2 : 4;
+const now = state === 1 ? 0.0 : state === 2 ? 1.0 : 28.0;
+
+if (state === 1) {
+  document.getElementById("video").classList.add("full");
+} else {
+  // timeline + leader lines + gap bracket
+  const s = STILLS.slice(0, shown);
+  const svg = `
+  <svg class="tl" viewBox="0 0 1920 1080">
+    <line x1="${X0}" y1="${TY}" x2="${X1}" y2="${TY}" stroke="#555a63" stroke-width="3"/>
+    <line x1="${X0}" y1="${TY}" x2="${tx(now)}" y2="${TY}" stroke="var(--line)" stroke-width="5"/>
+    ${[0,5,10,15,20,25,30].map(v => `<line x1="${tx(v)}" y1="${TY-6}" x2="${tx(v)}" y2="${TY+6}" stroke="#555a63" stroke-width="2"/>
+      <text x="${tx(v)}" y="${TY+28}" fill="#6b7078" font-size="15" font-family="Liberation Mono, monospace" text-anchor="middle">${v}s</text>`).join("")}
+    ${s.map(p => `<line x1="${p.x}" y1="935" x2="${tx(p.t)}" y2="${TY}" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 5" opacity=".8"/>
+      <circle cx="${tx(p.t)}" cy="${TY}" r="9" fill="var(--red)" stroke="var(--bg)" stroke-width="3"/>`).join("")}
+    ${shown === 4 ? `
+      <path d="M${tx(1)+14},${TY+40} v10 H${tx(27)-14} v-10" fill="none" stroke="var(--red)" stroke-width="3"/>
+      <text x="${(tx(1)+tx(27))/2}" y="${TY+78}" fill="var(--red)" font-size="22" font-weight="800" font-family="Liberation Sans, Arial" text-anchor="middle" letter-spacing="2">26 SECONDS IN THE FIRE</text>` : ""}
+    <circle cx="${tx(now)}" cy="${TY}" r="7" fill="var(--line)"/>
+  </svg>`;
+  band.insertAdjacentHTML("beforeend", svg);
+  s.forEach(p => band.insertAdjacentHTML("beforeend", `
+    <div class="print" style="left:${p.x}px;--r:${p.r};--shade:${p.shade}">
+      <div class="tape"><b>${p.time} · ${p.name}</b><span>${p.note}</span></div>
+      <div class="img">frame grab: ${p.name.toLowerCase()}</div>
+    </div>`));
+  band.insertAdjacentHTML("beforeend", `<div class="clock"><small>ELAPSED</small>T+${now.toFixed(1)}s</div>`);
+}
+
+// Annotations explaining each state (mockup only).
+const NOTES = {
+  1: [[60, 1000, "Opens full-frame for 1–2 s. First freeze = Impact: frame shrinks into print slot 1, video scales to 70%."]],
+  2: [[60, 40, "Mid-sequence: video live at top, stills collect underneath. Each freeze: flash → frame drops into its slot."]],
+  3: [[60, 40, "All four stills. Even spacing; dashed leaders point to true times → the empty stretch shows the 26 s."]],
+  4: [[60, 40, "End hold: video fades, band rises to centre. Then push into the 'Out' print → gloves → kit section."]],
+};
+NOTES[state].forEach(([x, y, t]) => frame.insertAdjacentHTML("beforeend", `<div class="note" style="left:${x}px;top:${y}px;max-width:${state===1?1800:200}px">${t}</div>`));
+</script>
+</body>
+</html>

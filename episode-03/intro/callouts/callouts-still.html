@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Intro Callouts Still</title>
+<!--
+  Placement mockup for the intro freeze-frame callouts (1920x1080).
+  Photo = the supplied frame with its old annotations removed (clean_photo.py),
+  cropped in on the car. Car is nose-down: rear wing top, airbox, cockpit,
+  nose in the gravel. Final art needs the clean full-res broadcast frame.
+-->
+<style>
+  @font-face { font-family: "Caveat"; src: url(../../board/assets/caveat-600.woff2) format("woff2"); font-weight: 600; }
+  html, body { margin: 0; }
+  #page { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.12) 100%),
+      linear-gradient(90deg, rgba(120,140,190,.28) 1.5px, transparent 1.5px) 0 0/48px 48px,
+      linear-gradient(0deg, rgba(120,140,190,.28) 1.5px, transparent 1.5px) 0 0/48px 48px,
+      #f1f0ec; }
+  #print { position: absolute; left: 394px; top: 217px; width: 1172px; height: 685px; box-sizing: border-box;
+    padding: 36px; background: #ece3cf; transform: rotate(-1.5deg);
+    box-shadow: inset 0 0 40px rgba(120,95,50,.25), 0 18px 34px rgba(0,0,0,.28); }
+  #print img { display: block; width: 1100px; height: 613px; }
+  svg { position: absolute; left: 36px; top: 36px; overflow: visible; }
+  .ink { fill: none; stroke: #2c8a4e; stroke-width: 4; stroke-linecap: round; }
+  .lbl { font: 600 74px "Caveat", cursive; fill: #1d1c1b; }
+  .sub { font: 600 40px "Caveat", cursive; fill: #2c8a4e; }
+</style>
+</head>
+<body>
+<div id="page">
+  <div id="print">
+    <img src="photo-clean.png" alt="">
+    <!-- coordinates are in photo pixels (1100x613) -->
+    <svg width="1100" height="613" viewBox="0 0 1100 613">
+      <!-- 1 Structures: nose / front impact structure in the gravel -->
+      <circle class="ink" cx="535" cy="437" r="32"/>
+      <path class="ink" d="M522,468 L470,668"/>
+      <text class="lbl" x="470" y="735" text-anchor="middle">Structures</text>
+      <text class="sub" x="470" y="780" text-anchor="middle">absorb energy</text>
+
+      <!-- 2 Restraints: cockpit, where the harness + HANS hold the driver -->
+      <circle class="ink" cx="518" cy="312" r="30"/>
+      <path class="ink" d="M488,310 L-40,282"/>
+      <text class="lbl" x="-60" y="290" text-anchor="end">Restraints</text>
+      <text class="sub" x="-60" y="335" text-anchor="end">control forces</text>
+
+      <!-- 3 Protective equipment: helmet, just below the airbox -->
+      <circle class="ink" cx="548" cy="258" r="26"/>
+      <path class="ink" d="M552,232 L630,-78"/>
+      <text class="lbl" x="640" y="-150" text-anchor="middle">Protective equipment</text>
+      <text class="sub" x="640" y="-104" text-anchor="middle">protect the driver</text>
+    </svg>
+  </div>
+</div>
+</body>
+</html>
